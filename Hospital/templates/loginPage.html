@@ -28,7 +28,7 @@
         {% for msg in messages %}
             <p class="error">{{ msg }}</p> 
         {% endfor %}
-        <p>Don't have an account? <a href="">Register here</a></p>
+        <p>Don't have an account? <a href="{% url 'register' %}">Register here</a></p>
     </main>
 
     <footer>
