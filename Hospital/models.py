@@ -20,7 +20,7 @@ class Appointments(models.Model):
     doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE)
     date = models.DateField()
     time = models.TimeField()  
-    doctors_description = models.CharField(max_length=255,default="") 
+    doctors_description = models.CharField(max_length=255,default="")  
     medicines = models.CharField(max_length=255,default="None") 
 
 class PatientRecords(models.Model):
