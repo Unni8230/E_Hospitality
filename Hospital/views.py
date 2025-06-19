@@ -76,6 +76,37 @@ def userProfile(request):
             return redirect('userprofile')
 
     return render(request,'userProfile.html', {"user": user, "appointments": appointments, "doctors": doctors})
+def rescheduleAppointment(request,id):
+    if "user_id" not in request.session:
+        return redirect('login')
+    else:
+        user = Credentials.objects.get(id=request.session["user_id"])
+        appointment_details = Appointments.objects.get(id=id)
+
+        appointment_user = Appointments.objects.filter(user=user)  # Ensure variable exists
+
+        if request.method == 'POST':
+            time = request.POST['updated-time']
+            date = request.POST['updated-date']
+
+            if appointment_details:
+                Appointments.objects.filter(id=id).update(date=date, time=time)
+                messages.success(request, "Appointment Rescheduled!")
+            else:
+                messages.error(request, "Appointment not found!")
+                return redirect("userprofile")
+
+    return render(request, 'userprofile.html', {"user": user, "appointments": appointment_user})
+def cancelAppointment(request,id):
+     if "user_id" not in request.session:
+        return redirect('login')
+     else:
+        user = Credentials.objects.get(id=request.session["user_id"])
+        doctor = Doctor.objects.all()
+        appointment_details = Appointments.objects.get(id=id)
+        appointment_details.delete()
+        remaining_appointments = Appointments.objects.filter(user=user)
+     return render(request,'userprofile.html', {'user':user, 'appointments':remaining_appointments, 'doctors':doctor})
 def doctorProfile(request):
     if "user_id" not in request.session:
         return redirect('login')
@@ -94,6 +125,30 @@ def doctorProfile(request):
         "doctor": doctor,
         "patients":patients
     })
+def updatePrescription(request,user_id,app_id):
+    if "user_id" not in request.session:
+        return redirect('login')
+    else:
+        user = Credentials.objects.get(id=user_id)
+        appointment_details = Appointments.objects.get(id=app_id)
+        if request.method == 'POST':
+            medicine = request.POST['medicines']
+            description = request.POST['Description']
+            if (appointment_details):
+                Appointments.objects.filter(id=app_id).update(doctors_description=description, medicines=medicine)
+
+        doctor = Doctor.objects.get(id=appointment_details.doctor.id)
+
+        query = """SELECT * FROM Hospital_Appointments inner join Hospital_PatientRecords 
+        on Hospital_Appointments.user_id = Hospital_PatientRecords.username_id 
+        inner join Hospital_Credentials on Hospital_Appointments.user_id = Hospital_Credentials.id
+        where Hospital_Appointments.doctor_id = %s """
+        
+        patients = Appointments.objects.raw(query,[doctor.id])   
+    return render(request, "doctorProfile.html", {
+        "doctor": doctor,
+        "patients":patients
+    })   
 def adminProfile(request):
     if "user_id" not in request.session:
         return redirect('login')
@@ -109,4 +164,4 @@ def adminProfile(request):
             "patients": patients
         }
 
-    return render(request,'adminProfile.html', context)  
+    return render(request,'adminProfile.html', context)    
